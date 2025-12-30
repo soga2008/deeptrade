@@ -203,13 +203,21 @@ class RiskMetrics(BaseModel):
 # ============================================================================
 
 class ModelSettings(BaseModel):
-    """AI model configuration"""
-    model_name: str = Field(default="kimi-k2ai", description="Model name")
-    model_path: Optional[str] = None
-    batch_size: int = Field(default=32, ge=1, le=256)
-    sequence_length: int = Field(default=100, ge=10, le=500)
-    learning_rate: float = Field(default=0.001, gt=0, le=1)
-    use_gpu: bool = Field(default=False, description="Use GPU acceleration")
+    """AI model configuration - Kimi K2AI only"""
+    model_name: str = Field(default="Kimi K2AI", description="Model name (fixed to Kimi K2AI)")
+    model_version: str = Field(default="v1", description="Model version")
+    sequence_length: int = Field(default=100, ge=10, le=500, description="Lookback periods for prediction")
+    use_gpu: bool = Field(default=False, description="Use GPU acceleration (if available)")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "model_name": "Kimi K2AI",
+                "model_version": "v1",
+                "sequence_length": 100,
+                "use_gpu": False
+            }
+        }
 
 
 class RiskSettings(BaseModel):

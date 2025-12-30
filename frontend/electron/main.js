@@ -8,24 +8,75 @@ let backendProcess
 
 // Start Python backend
 function startBackend() {
-  const backendPath = path.join(__dirname, '../../backend')
+  // In packaged app, backend location depends on packaging tool
+  // electron-packager: backend should be in resources/app/backend or ../backend
+  // In development, it's in ../../backend
+  let backendPath
+  if (app.isPackaged) {
+    // Try multiple possible locations
+    const possiblePaths = [
+      path.join(process.resourcesPath, 'app', 'backend'),
+      path.join(path.dirname(process.execPath), 'resources', 'app', 'backend'),
+      path.join(path.dirname(process.execPath), 'backend'),
+      path.join(process.resourcesPath, 'app', 'dist-electron', 'win-unpacked', 'backend'),
+      path.join(__dirname, '../../backend') // Fallback to relative
+    ]
+    
+    // Find the first path that exists
+    for (const possiblePath of possiblePaths) {
+      const mainPy = path.join(possiblePath, 'main.py')
+      if (require('fs').existsSync(mainPy)) {
+        backendPath = possiblePath
+        break
+      }
+    }
+    
+    // If still not found, use relative path as last resort
+    if (!backendPath) {
+      backendPath = path.join(__dirname, '../../backend')
+    }
+  } else {
+    backendPath = path.join(__dirname, '../../backend')
+  }
+  
   const pythonScript = path.join(backendPath, 'main.py')
+  
+  // Check if backend exists
+  if (!require('fs').existsSync(pythonScript)) {
+    console.error(`Backend not found at: ${pythonScript}`)
+    console.error(`Tried backend path: ${backendPath}`)
+    return
+  }
   
   // In production, use the bundled Python or a packaged executable
   // For now, assume Python is available in PATH
   const pythonCmd = process.platform === 'win32' ? 'python' : 'python3'
   
+  console.log(`Starting backend from: ${backendPath}`)
+  console.log(`Python script: ${pythonScript}`)
+  
   backendProcess = spawn(pythonCmd, [pythonScript], {
     cwd: backendPath,
-    env: { ...process.env, PYTHONUNBUFFERED: '1' }
+    env: { ...process.env, PYTHONUNBUFFERED: '1' },
+    shell: true
   })
 
   backendProcess.stdout.on('data', (data) => {
-    console.log(`Backend: ${data}`)
+    const output = data.toString()
+    console.log(`Backend: ${output}`)
+    // Also log to window console if available
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.executeJavaScript(`console.log('Backend:', ${JSON.stringify(output)})`)
+    }
   })
 
   backendProcess.stderr.on('data', (data) => {
-    console.error(`Backend Error: ${data}`)
+    const error = data.toString()
+    console.error(`Backend Error: ${error}`)
+    // Also log to window console if available
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.executeJavaScript(`console.error('Backend Error:', ${JSON.stringify(error)})`)
+    }
   })
 
   backendProcess.on('close', (code) => {
@@ -47,7 +98,7 @@ function createWindow() {
       enableRemoteModule: false,
       preload: path.join(__dirname, 'preload.js')
     },
-    icon: path.join(__dirname, 'icon.png'),
+    // icon: path.join(__dirname, 'icon.png'), // Icon disabled for now
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     show: false // Don't show until ready
   })
@@ -60,7 +111,32 @@ function createWindow() {
     mainWindow.webContents.openDevTools()
   } else {
     // Production: Load from built files
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'))
+    // In packaged app (electron-packager), dist contents are in resources/app/
+    let distPath
+    if (app.isPackaged) {
+      // electron-packager puts dist files directly in app folder
+      distPath = path.join(process.resourcesPath, 'app', 'index.html')
+      // Fallback: try relative to exe
+      if (!require('fs').existsSync(distPath)) {
+        distPath = path.join(path.dirname(process.execPath), 'resources', 'app', 'index.html')
+      }
+      // Another fallback: try dist subfolder
+      if (!require('fs').existsSync(distPath)) {
+        distPath = path.join(process.resourcesPath, 'app', 'dist', 'index.html')
+      }
+      if (!require('fs').existsSync(distPath)) {
+        distPath = path.join(__dirname, '../dist/index.html')
+      }
+    } else {
+      distPath = path.join(__dirname, '../dist/index.html')
+    }
+    
+    console.log(`Loading app from: ${distPath}`)
+    console.log(`File exists: ${require('fs').existsSync(distPath)}`)
+    mainWindow.loadFile(distPath)
+    
+    // Open DevTools in production for debugging (remove in final release)
+    mainWindow.webContents.openDevTools()
   }
 
   // Show window when ready

@@ -5,10 +5,9 @@ import { getSettings, updateSettings } from '../api/client'
 function Settings() {
   const [settings, setSettings] = useState({
     model: {
-      model_name: 'kimi-k2ai',
-      batch_size: 32,
+      model_name: 'Kimi K2AI',
+      model_version: 'v1',
       sequence_length: 100,
-      learning_rate: 0.001,
       use_gpu: false,
     },
     risk: {
@@ -58,6 +57,11 @@ function Settings() {
   }
 
   const updateModelSetting = (key, value) => {
+    // Only allow updating sequence_length and use_gpu
+    // Model name and version are fixed to Kimi K2AI
+    if (key === 'model_name' || key === 'model_version') {
+      return // Don't allow changing model name or version
+    }
     setSettings({
       ...settings,
       model: { ...settings.model, [key]: value },
@@ -98,67 +102,63 @@ function Settings() {
         </div>
       </div>
 
-      {/* Model Configuration */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="flex items-center space-x-2 mb-6">
+      {/* AI Model Info */}
+      <div className="bg-gradient-to-br from-primary to-gray-800 rounded-xl shadow-sm border border-accent p-6 mb-6 text-white">
+        <div className="flex items-center space-x-2 mb-4">
           <SettingsIcon className="w-5 h-5 text-accent" />
-          <h2 className="text-xl font-semibold text-gray-900">AI Model Configuration</h2>
+          <h2 className="text-xl font-semibold">AI Model: Kimi K2AI</h2>
         </div>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Model Name</label>
-            <input
-              type="text"
-              value={settings.model.model_name}
-              onChange={(e) => updateModelSetting('model_name', e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Batch Size</label>
-              <input
-                type="number"
-                value={settings.model.batch_size}
-                onChange={(e) => updateModelSetting('batch_size', Number(e.target.value))}
-                min="1"
-                max="256"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent"
-              />
+        <div className="space-y-3">
+          <div className="bg-white/10 rounded-lg p-4">
+            <p className="text-sm text-gray-300 mb-3">Model Information</p>
+            <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+              <div>
+                <span className="text-gray-400">Model:</span>
+                <span className="ml-2 font-medium text-accent">Kimi K2AI</span>
+              </div>
+              <div>
+                <span className="text-gray-400">Version:</span>
+                <span className="ml-2 font-medium">{settings.model.model_version || 'v1'}</span>
+              </div>
+              <div>
+                <span className="text-gray-400">Status:</span>
+                <span className="ml-2 font-medium text-success">✓ Active</span>
+              </div>
+              <div>
+                <span className="text-gray-400">GPU:</span>
+                <span className="ml-2 font-medium">{settings.model.use_gpu ? 'Enabled' : 'Disabled'}</span>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Sequence Length</label>
+            <div className="border-t border-white/20 pt-3">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Lookback Periods (for predictions)
+              </label>
               <input
                 type="number"
                 value={settings.model.sequence_length}
                 onChange={(e) => updateModelSetting('sequence_length', Number(e.target.value))}
                 min="10"
                 max="500"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent"
+                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
               />
+              <p className="text-xs text-gray-400 mt-1">Number of historical periods the model uses for predictions (10-500)</p>
+            </div>
+            <div className="mt-3">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={settings.model.use_gpu}
+                  onChange={(e) => updateModelSetting('use_gpu', e.target.checked)}
+                  className="w-4 h-4 text-accent border-white/20 rounded focus:ring-accent bg-white/10"
+                />
+                <span className="text-sm text-gray-300">Use GPU Acceleration (if available)</span>
+              </label>
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Learning Rate</label>
-            <input
-              type="number"
-              step="0.0001"
-              value={settings.model.learning_rate}
-              onChange={(e) => updateModelSetting('learning_rate', Number(e.target.value))}
-              min="0"
-              max="1"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent"
-            />
-          </div>
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={settings.model.use_gpu}
-              onChange={(e) => updateModelSetting('use_gpu', e.target.checked)}
-              className="w-4 h-4 text-accent border-gray-300 rounded focus:ring-accent"
-            />
-            <label className="text-sm font-medium text-gray-700">Use GPU Acceleration</label>
-          </div>
+          <p className="text-sm text-gray-300">
+            <strong className="text-white">Kimi K2AI</strong> is a deep learning model optimized for financial time series prediction. 
+            It uses LSTM (Long Short-Term Memory) architecture to analyze price patterns and generate accurate predictions.
+          </p>
         </div>
       </div>
 

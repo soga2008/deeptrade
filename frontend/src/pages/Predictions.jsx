@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Brain, TrendingUp, TrendingDown, Activity } from 'lucide-react'
 import { getPrediction, getMarketData } from '../api/client'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import SymbolSelector from '../components/SymbolSelector'
 
 function Predictions() {
   const [symbol, setSymbol] = useState('AAPL')
@@ -52,17 +53,7 @@ function Predictions() {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">AI Predictions</h1>
             <p className="text-gray-600">Kimi K2AI model predictions and analysis</p>
           </div>
-          <select
-            value={symbol}
-            onChange={(e) => setSymbol(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-accent"
-          >
-            <option value="AAPL">AAPL</option>
-            <option value="GOOGL">GOOGL</option>
-            <option value="MSFT">MSFT</option>
-            <option value="TSLA">TSLA</option>
-            <option value="BTC">BTC</option>
-          </select>
+          <SymbolSelector value={symbol} onChange={setSymbol} />
         </div>
       </div>
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Play, BarChart3, TrendingUp, TrendingDown } from 'lucide-react'
 import { quickBacktest, runBacktest } from '../api/client'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import SymbolSelector from '../components/SymbolSelector'
 
 function BacktestResults() {
   const [symbol, setSymbol] = useState('AAPL')
@@ -74,17 +75,7 @@ function BacktestResults() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Backtest Results</h1>
         <div className="flex items-center space-x-4">
-          <select
-            value={symbol}
-            onChange={(e) => setSymbol(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-accent"
-          >
-            <option value="AAPL">AAPL</option>
-            <option value="GOOGL">GOOGL</option>
-            <option value="MSFT">MSFT</option>
-            <option value="TSLA">TSLA</option>
-            <option value="BTC">BTC</option>
-          </select>
+          <SymbolSelector value={symbol} onChange={setSymbol} />
           <select
             value={days}
             onChange={(e) => setDays(Number(e.target.value))}

@@ -11,6 +11,7 @@ function Navbar() {
     { path: '/chart', label: 'Chart View' },
     { path: '/predictions', label: 'AI Predictions' },
     { path: '/backtest', label: 'Backtest Results' },
+    { path: '/math', label: 'Math Reference' },
     { path: '/settings', label: 'Settings' },
   ]
 

@@ -135,17 +135,27 @@ class PriceDataManager:
         """Get or create generator for symbol"""
         if symbol not in self.generators:
             # Different initial prices for different symbols
+            # Default to 100.0 for unknown symbols
             initial_prices = {
                 "AAPL": 150.0,
                 "GOOGL": 2500.0,
                 "MSFT": 350.0,
                 "TSLA": 200.0,
                 "BTC": 45000.0,
+                "ETH": 3000.0,
+                "SPY": 450.0,
+                "QQQ": 380.0,
             }
-            initial_price = initial_prices.get(symbol, 100.0)
+            # Use symbol hash to generate consistent initial price for any symbol
+            symbol_hash = hash(symbol) % 10000
+            initial_price = initial_prices.get(symbol, 50.0 + (symbol_hash / 100))
+            
+            # Adjust volatility based on symbol type
+            volatility = 0.03 if symbol in ["BTC", "ETH"] else 0.02
+            
             self.generators[symbol] = PriceDataGenerator(
                 initial_price=initial_price,
-                volatility=0.02
+                volatility=volatility
             )
         return self.generators[symbol]
     
@@ -154,7 +164,8 @@ class PriceDataManager:
         symbol: str,
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
-        interval: str = "1d"
+        interval: str = "1d",
+        use_real_data: bool = True
     ) -> List[PriceCandle]:
         """
         Get historical price data
@@ -164,6 +175,7 @@ class PriceDataManager:
             start_date: Start date (default: 1 year ago)
             end_date: End date (default: now)
             interval: Time interval
+            use_real_data: Whether to use real data from Yahoo Finance (default: True)
             
         Returns:
             List of PriceCandle objects
@@ -173,11 +185,34 @@ class PriceDataManager:
         if start_date is None:
             start_date = end_date - timedelta(days=365)
         
+        # Try to use real data first
+        if use_real_data:
+            try:
+                from real_data import real_data_fetcher
+                real_data = real_data_fetcher.get_historical_data(
+                    symbol, start_date, end_date, interval
+                )
+                if real_data:
+                    return real_data
+            except Exception as e:
+                print(f"Failed to fetch real data, using synthetic: {e}")
+        
+        # Fallback to synthetic data
         generator = self.get_generator(symbol)
         return generator.generate_series(start_date, end_date, interval)
     
     def get_latest_price(self, symbol: str) -> float:
         """Get latest price for symbol"""
+        # Try real data first
+        try:
+            from real_data import real_data_fetcher
+            latest = real_data_fetcher.get_latest_price(symbol)
+            if latest:
+                return latest.close
+        except Exception as e:
+            print(f"Failed to fetch real latest price, using synthetic: {e}")
+        
+        # Fallback to synthetic
         generator = self.get_generator(symbol)
         return generator.current_price
     

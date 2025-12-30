@@ -1,6 +1,6 @@
 # 🚀 AI Trading Application
 
-A full-stack AI-powered trading simulator with backtesting, risk analysis, and real-time predictions using Kimi K2AI.
+A comprehensive **trading simulator and strategy testing platform** that combines AI-powered predictions, backtesting, risk analysis, and educational tools. Unlike Google Stocks or Yahoo Finance, this app lets you **test trading strategies risk-free**, get **AI predictions**, and **learn quantitative finance** - all in one desktop application.
 
 ![Tech Stack](https://img.shields.io/badge/React-18.2-blue)
 ![Tech Stack](https://img.shields.io/badge/FastAPI-0.121-green)
@@ -22,6 +22,29 @@ A full-stack AI-powered trading simulator with backtesting, risk analysis, and r
 
 ---
 
+## ✨ What Makes This App Unique
+
+### 🆚 vs. Google Stocks / Yahoo Finance
+
+| Feature | Google Stocks | This App |
+|---------|--------------|----------|
+| Price Display | ✅ | ✅ |
+| Charts | ✅ | ✅ |
+| **AI Predictions** | ❌ | ✅ **Kimi K2AI** |
+| **Backtesting** | ❌ | ✅ **Full Engine** |
+| **Risk Metrics** | ❌ | ✅ **Sharpe, VaR, etc.** |
+| **Strategy Testing** | ❌ | ✅ **Test Before Trading** |
+| **Educational Content** | ❌ | ✅ **Math Explanations** |
+| **Desktop App** | ❌ | ✅ **Native Desktop** |
+
+### 🎯 Main Purpose
+
+**Test trading strategies risk-free** before risking real money, with:
+- 🤖 AI-powered predictions (Kimi K2AI)
+- 🧪 Backtesting engine (simulate strategies)
+- 📊 Risk analysis (comprehensive metrics)
+- 📚 Educational tools (learn quantitative finance)
+
 ## ✨ Features
 
 ### Frontend
@@ -29,14 +52,16 @@ A full-stack AI-powered trading simulator with backtesting, risk analysis, and r
 - 📈 **Chart View** - Interactive candlestick charts with technical indicators
 - 🤖 **AI Predictions** - Kimi K2AI model predictions with confidence scores
 - 📉 **Backtest Results** - Comprehensive backtesting with equity curves and trade analysis
+- 📚 **Math Reference** - Complete mathematical formulas and explanations
 - ⚙️ **Settings** - Configure AI model, risk parameters, and trading strategies
 
 ### Backend
-- 🔄 **Market Data** - Historical price data generation and management
+- 🔄 **Market Data** - Real stock data (Yahoo Finance) + synthetic data
 - 📊 **Technical Indicators** - SMA, EMA, RSI, MACD, Bollinger Bands, ATR
 - 🧪 **Backtesting Engine** - Strategy simulation with full trade tracking
 - 📉 **Risk Metrics** - Sharpe ratio, Sortino ratio, VaR, CVaR, Max Drawdown
 - 🤖 **AI Integration** - Kimi K2AI model for price prediction
+- 🎓 **Training Module** - Train the AI model on historical data
 
 ---
 

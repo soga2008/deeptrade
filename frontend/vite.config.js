@@ -7,10 +7,17 @@ export default defineConfig({
   base: './', // Use relative paths for Electron
   server: {
     port: 5173,
-    strictPort: true,
+    strictPort: false, // Allow using next available port if 5173 is busy
+    host: true, // Listen on all addresses
   },
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
+  },
+  // Fix CJS deprecation warning
+  optimizeDeps: {
+    esbuildOptions: {
+      target: 'esnext',
+    },
   },
 })

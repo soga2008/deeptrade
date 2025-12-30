@@ -55,7 +55,11 @@ async def root():
     return {
         "message": "AI Trading Application API",
         "version": "1.0.0",
-        "docs": "/docs"
+        "docs": "/docs",
+        "features": {
+            "real_data": "Integrated with Yahoo Finance for real stock data",
+            "symbols": "Supports any stock, ETF, or crypto symbol"
+        }
     }
 
 
@@ -74,23 +78,26 @@ async def get_market_data(
     symbol: str,
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
-    interval: str = "1d"
+    interval: str = "1d",
+    use_real_data: bool = True
 ):
     """
     Get historical market data
     
     Args:
-        symbol: Trading symbol (e.g., AAPL, GOOGL, BTC)
+        symbol: Trading symbol (e.g., AAPL, GOOGL, BTC-USD, SPY, QQQ)
         start_date: Start date (ISO format)
         end_date: End date (ISO format)
         interval: Time interval (1m, 5m, 1h, 1d)
+        use_real_data: Use real data from Yahoo Finance (default: True)
     """
     try:
         data = price_manager.get_historical_data(
             symbol=symbol,
             start_date=start_date,
             end_date=end_date,
-            interval=interval
+            interval=interval,
+            use_real_data=use_real_data
         )
         return data
     except Exception as e:
@@ -105,7 +112,8 @@ async def get_market_data_post(request: MarketDataRequest):
             symbol=request.symbol,
             start_date=request.start_date,
             end_date=request.end_date,
-            interval=request.interval
+            interval=request.interval,
+            use_real_data=True
         )
         return data
     except Exception as e:
@@ -114,17 +122,39 @@ async def get_market_data_post(request: MarketDataRequest):
 
 @app.get("/api/market-data/{symbol}/latest", response_model=PriceCandle, tags=["Market Data"])
 async def get_latest_price(symbol: str):
-    """Get latest price for symbol"""
+    """Get latest price for symbol (uses real data when available)"""
     try:
+        # Try real data first
+        try:
+            from real_data import real_data_fetcher
+            latest = real_data_fetcher.get_latest_price(symbol)
+            if latest:
+                return latest
+        except Exception as e:
+            print(f"Real data fetch failed, using fallback: {e}")
+        
+        # Fallback to historical data
         data = price_manager.get_historical_data(
             symbol=symbol,
             start_date=datetime.now() - timedelta(days=1),
             end_date=datetime.now(),
-            interval="1d"
+            interval="1d",
+            use_real_data=True
         )
         if not data:
             raise HTTPException(status_code=404, detail="No data available")
         return data[-1]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/search-symbols", tags=["Market Data"])
+async def search_symbols(query: str):
+    """Search for stock symbols"""
+    try:
+        from real_data import real_data_fetcher
+        results = real_data_fetcher.search_symbol(query)
+        return {"results": results}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -149,7 +179,8 @@ async def get_indicators(
         candles = price_manager.get_historical_data(
             symbol=symbol,
             start_date=start_date,
-            end_date=end_date
+            end_date=end_date,
+            use_real_data=True
         )
         
         if not candles:
@@ -193,7 +224,8 @@ async def run_backtest(config: BacktestConfig):
         candles = price_manager.get_historical_data(
             symbol=config.symbol,
             start_date=config.start_date,
-            end_date=config.end_date
+            end_date=config.end_date,
+            use_real_data=True
         )
         
         if not candles:
@@ -234,7 +266,8 @@ async def quick_backtest(
         candles = price_manager.get_historical_data(
             symbol=symbol,
             start_date=start_date,
-            end_date=end_date
+            end_date=end_date,
+            use_real_data=True
         )
         
         if not candles:
@@ -270,7 +303,8 @@ async def predict_price(request: PredictionRequest):
             historical_data = price_manager.get_historical_data(
                 symbol=request.symbol,
                 start_date=datetime.now() - timedelta(days=365),
-                end_date=datetime.now()
+                end_date=datetime.now(),
+                use_real_data=True
             )
             # Take last N periods
             historical_data = historical_data[-request.lookback_periods:]
@@ -305,7 +339,8 @@ async def predict_price_get(
         historical_data = price_manager.get_historical_data(
             symbol=symbol,
             start_date=datetime.now() - timedelta(days=365),
-            end_date=datetime.now()
+            end_date=datetime.now(),
+            use_real_data=True
         )
         
         if not historical_data:
@@ -396,6 +431,7 @@ async def startup_event():
     print("Loading AI model...")
     ai_model.load_model()
     print("AI model loaded successfully!")
+    print("✅ Real stock data integration enabled (Yahoo Finance)")
 
 
 # ============================================================================
@@ -409,4 +445,3 @@ if __name__ == "__main__":
         port=8000,
         reload=True
     )
-

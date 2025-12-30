@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard'
 import ChartView from './pages/ChartView'
 import Predictions from './pages/Predictions'
 import BacktestResults from './pages/BacktestResults'
+import MathReference from './pages/MathReference'
 import Settings from './pages/Settings'
 import client from './api/client'
 
@@ -28,6 +29,7 @@ function App() {
               <Route path="/chart" element={<ChartView />} />
               <Route path="/predictions" element={<Predictions />} />
               <Route path="/backtest" element={<BacktestResults />} />
+              <Route path="/math" element={<MathReference />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>
           </main>

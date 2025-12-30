@@ -4,6 +4,7 @@ Kimi K2AI model for price prediction
 """
 
 import numpy as np
+import os
 from datetime import datetime
 from typing import List, Optional
 import torch
@@ -55,6 +56,7 @@ class KimiK2AIModel:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.is_loaded = False
         self.sequence_length = 100
+        self.model_path = None
         
         # Initialize a simple LSTM as placeholder
         self.lstm_model = SimpleLSTMModel(input_size=5, hidden_size=64, num_layers=2)
@@ -65,17 +67,46 @@ class KimiK2AIModel:
         """
         Load the Kimi K2AI model
         
+        Args:
+            model_path: Path to trained model checkpoint (optional)
+            
         In production, this would load the actual model:
         - self.model = AutoModel.from_pretrained("kimi/k2ai")
         - self.tokenizer = AutoTokenizer.from_pretrained("kimi/k2ai")
         """
         try:
-            # Placeholder: In production, load actual Kimi K2AI model
-            # For now, we'll use a simple LSTM that's already initialized
+            # Try to load trained model if path provided
+            if model_path and os.path.exists(model_path):
+                checkpoint = torch.load(model_path, map_location=self.device)
+                self.lstm_model.load_state_dict(checkpoint['model_state_dict'])
+                self.lstm_model.eval()
+                self.model_path = model_path
+                print(f"✓ Loaded trained model from {model_path}")
+                print(f"  Validation Loss: {checkpoint.get('val_loss', 'N/A')}")
+            else:
+                # Check for default trained model
+                default_paths = [
+                    "backend/models/kimi_k2ai_aapl.pth",
+                    "backend/models/trained_model.pth"
+                ]
+                for path in default_paths:
+                    if os.path.exists(path):
+                        checkpoint = torch.load(path, map_location=self.device)
+                        self.lstm_model.load_state_dict(checkpoint['model_state_dict'])
+                        self.lstm_model.eval()
+                        self.model_path = path
+                        print(f"✓ Loaded trained model from {path}")
+                        break
+                else:
+                    print("⚠ No trained model found. Using untrained model (random weights).")
+                    print("  Run train_model.py to train the model first.")
+            
             self.is_loaded = True
             return True
         except Exception as e:
             print(f"Error loading model: {e}")
+            print("Using untrained model (random weights)")
+            self.is_loaded = True
             return False
     
     def prepare_features(self, candles: List[PriceCandle]) -> np.ndarray:
